@@ -11,6 +11,10 @@ namespace ProductCatalog.Mapper
             TypeAdapterConfig<List<ProductDto>, ProductsResponse>
                 .NewConfig()
                 .Map(dest => dest.Products, src => src);
+
+            TypeAdapterConfig<ProductDto, ProductResponse>
+                .NewConfig()
+                .Map(dest => dest.Product, src => src);
         }
     }
 }

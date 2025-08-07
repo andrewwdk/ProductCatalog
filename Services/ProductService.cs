@@ -1,5 +1,9 @@
 ﻿using Mapster;
+using OneOf;
+using OneOf.Types;
+using ProductCatalog.Entities;
 using ProductCatalog.Models.Dto;
+using ProductCatalog.Models.Requests;
 using ProductCatalog.Repository;
 
 namespace ProductCatalog.Services
@@ -17,6 +21,35 @@ namespace ProductCatalog.Services
         {
             var products = await _productRepository.GetProductsAsync();
             return products.Adapt<List<ProductDto>>();
+        }
+
+        public async Task<OneOf<ProductDto, NotFound>> GetProductByIdAsync(int productId)
+        {
+            var product = await _productRepository.GetProductByIdAsync(productId);
+
+            if (product.Value is NotFound)
+                return product.AsT1;
+
+            return product.AsT0.Adapt<ProductDto>();
+        }
+
+        public async Task<OneOf<int, Error>> AddProductAsync(AddProductRequest addProductRequest)
+        {
+            var productToAdd = Product.Create(addProductRequest.Name, addProductRequest.Description, addProductRequest.Price);
+
+            return await _productRepository.AddProductAsync(productToAdd);
+        }
+
+        public async Task<OneOf<int, NotFound>> UpdateProductAsync(int productId, UpdateProductRequest updateProductRequest)
+        {
+            var updateProductDto = updateProductRequest.Adapt<UpdateProductDto>();
+
+            return await _productRepository.UpdateProductAsync(productId, updateProductDto);
+        }
+
+        public async Task<OneOf<int, NotFound>> DeleteProductAsync(int productId)
+        {
+            return await _productRepository.DeleteProductAsync(productId);
         }
     }
 }
