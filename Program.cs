@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using ProductCatalog.DbContexts;
+using ProductCatalog.Mapper;
+using ProductCatalog.Repository;
+using ProductCatalog.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +18,11 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
     var connectionString = builder.Configuration.GetConnectionString("ProductDb");
     options.UseSqlServer(connectionString);
 });
+
+builder.Services.AddTransient<IProductService, ProductService>();
+builder.Services.AddTransient<IProductRepository, ProductRepository>();
+
+MapsterConfig.RegisterMappings();
 
 var app = builder.Build();
 
