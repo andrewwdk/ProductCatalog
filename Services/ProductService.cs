@@ -70,10 +70,8 @@ namespace ProductCatalog.Services
             if (count <= 0)
                 return new Error();
 
-            if (_memoryCache.TryGetValue(TopProductsCacheKey, out List<ProductDto>? cachedValue) && cachedValue != null)
-            {
+            if (_memoryCache.TryGetValue(TopProductsCacheKey, out List<ProductDto>? cachedValue) && cachedValue != null && cachedValue.Count == count)
                 return cachedValue;
-            }
 
             var products = (await _productRepository.GetTopProductsAsync(count)).Adapt<List<ProductDto>>();
 
