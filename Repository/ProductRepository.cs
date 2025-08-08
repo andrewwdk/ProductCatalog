@@ -5,10 +5,7 @@ using OneOf;
 using OneOf.Types;
 using ProductCatalog.DbContexts;
 using ProductCatalog.Entities;
-using ProductCatalog.Models.Dto;
 using System.Data;
-using System.Runtime.CompilerServices;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ProductCatalog.Repository
 {

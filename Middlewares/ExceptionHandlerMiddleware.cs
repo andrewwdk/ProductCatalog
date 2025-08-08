@@ -1,15 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
-
-namespace ProductCatalog.Middlewares
+﻿namespace ProductCatalog.Middlewares
 {
     public class ExceptionHandlerMiddleware
     {
         private readonly ILogger _logger;
         private readonly RequestDelegate _next;
 
-        public ExceptionHandlerMiddleware(/*ILogger logger, */RequestDelegate next)
+        public ExceptionHandlerMiddleware(ILogger<ExceptionHandlerMiddleware> logger, RequestDelegate next)
         {
-            //_logger = logger;
+            _logger = logger;
             _next = next;
         }
 
@@ -21,8 +19,7 @@ namespace ProductCatalog.Middlewares
             }
             catch (Exception exception)
             {
-               // Logger.Error(exception, "error during executing {Context}", context.Request.Path.Value);
-
+                _logger.LogError(exception, exception.Message);
                 var response = context.Response;
                 response.ContentType = "application/json";
                 response.StatusCode = 500;
