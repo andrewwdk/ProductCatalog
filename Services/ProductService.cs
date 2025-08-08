@@ -1,4 +1,5 @@
 ﻿using Mapster;
+using Microsoft.Extensions.Caching.Memory;
 using OneOf;
 using OneOf.Types;
 using ProductCatalog.Entities;
@@ -10,13 +11,18 @@ namespace ProductCatalog.Services
 {
     public class ProductService : IProductService
     {
+        private const int CacheTimeOffset = 60;
+        private readonly string TopProductsCacheKey = "TopProducts";
+
         private readonly IProductRepository _productRepository;
         private readonly ILogger _logger;
+        private readonly IMemoryCache _memoryCache;
 
-        public ProductService(IProductRepository productRepository, ILogger<ProductService> logger)
+        public ProductService(IProductRepository productRepository, ILogger<ProductService> logger, IMemoryCache memoryCache)
         {
             _productRepository = productRepository;
             _logger = logger;
+            _memoryCache = memoryCache;
         }
 
         public async Task<IEnumerable<ProductDto>> GetProductsAsync()
@@ -59,13 +65,21 @@ namespace ProductCatalog.Services
             return await _productRepository.DeleteProductAsync(productId);
         }
 
-        public async Task<OneOf<IEnumerable<ProductDto>, Error>> GetTopProductsAsync(int count)
+        public async ValueTask<OneOf<IEnumerable<ProductDto>, Error>> GetTopProductsAsync(int count)
         {
             if (count <= 0)
                 return new Error();
 
-            var products = await _productRepository.GetTopProductsAsync(count);
-            return products.Adapt<List<ProductDto>>();
+            if (_memoryCache.TryGetValue(TopProductsCacheKey, out List<ProductDto>? cachedValue) && cachedValue != null)
+            {
+                return cachedValue;
+            }
+
+            var products = (await _productRepository.GetTopProductsAsync(count)).Adapt<List<ProductDto>>();
+
+            var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(CacheTimeOffset));
+            _memoryCache.Set(TopProductsCacheKey, products, cacheEntryOptions);
+            return products;
         }
     }
 }
