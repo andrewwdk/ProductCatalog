@@ -6,6 +6,7 @@ using ProductCatalog.Services;
 
 namespace ProductCatalog.Controllers
 {
+    [Route("~/api/products")]
     public class ProductController : BaseController
     {
         private readonly IProductService _productService;
@@ -15,7 +16,7 @@ namespace ProductCatalog.Controllers
             _productService = productService;
         }
 
-        [HttpGet("~/api/products")]
+        [HttpGet()]
         public async Task<IActionResult> GetProducts()
         {
             var result = await _productService.GetProductsAsync();
@@ -23,7 +24,7 @@ namespace ProductCatalog.Controllers
             return Ok(result.Adapt<ProductsResponse>());
         }
 
-        [HttpGet("~/api/products/{productId}")]
+        [HttpGet("{productId}")]
         public async Task<IActionResult> GetWeightById([FromRoute] int productId)
         {
             var result = await _productService.GetProductByIdAsync(productId);
@@ -33,7 +34,7 @@ namespace ProductCatalog.Controllers
                 _ => NotFound());
         }
 
-        [HttpPost("~/api/products")]
+        [HttpPost()]
         public async Task<IActionResult> AddProduct([FromForm] AddProductRequest addProductRequest)
         {
             var result = await _productService.AddProductAsync(addProductRequest);
@@ -43,7 +44,7 @@ namespace ProductCatalog.Controllers
                 _ => BadRequest());
         }
 
-        [HttpPut("~/api/products/{productId}")]
+        [HttpPut("{productId}")]
         public async Task<IActionResult> UpdateProduct([FromRoute] int productId, [FromBody] UpdateProductRequest updateProductRequest)
         {
             var result = await _productService.UpdateProductAsync(productId, updateProductRequest);
@@ -53,7 +54,7 @@ namespace ProductCatalog.Controllers
                 _ => NotFound());
         }
 
-        [HttpDelete("~/api/products/{productId}")]
+        [HttpDelete("{productId}")]
         public async Task<IActionResult> DeleteProduct([FromRoute] int productId)
         {
             var result = await _productService.DeleteProductAsync(productId);
@@ -61,6 +62,16 @@ namespace ProductCatalog.Controllers
             return result.Match<IActionResult>(
                 productId => Ok(new { productId }),
                 _ => NotFound());
+        }
+
+        [HttpGet("top/{count}")]
+        public async Task<IActionResult> GetTopProducts([FromRoute] int count)
+        {
+            var result = await _productService.GetTopProductsAsync(count);
+
+            return result.Match<IActionResult>(
+                products => Ok(products.Adapt<ProductsResponse>()),
+                _ => BadRequest("Invalid count parameter"));
         }
     }
 }

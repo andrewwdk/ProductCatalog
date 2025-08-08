@@ -1,19 +1,26 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Dapper;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
 using ProductCatalog.DbContexts;
 using ProductCatalog.Entities;
 using ProductCatalog.Models.Dto;
+using System.Data;
+using System.Runtime.CompilerServices;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ProductCatalog.Repository
 {
     public class ProductRepository : IProductRepository
     {
         private readonly ProductDbContext _dbContext;
+        private readonly IConfiguration _configuration;
 
-        public ProductRepository(ProductDbContext productDbContext)
+        public ProductRepository(ProductDbContext productDbContext, IConfiguration configuration)
         {
             _dbContext = productDbContext;
+            _configuration = configuration;
         }
 
         public async Task<IEnumerable<Product>> GetProductsAsync()
@@ -26,9 +33,7 @@ namespace ProductCatalog.Repository
         public async Task<OneOf<Product, NotFound>> GetProductByIdAsync(int productId)
         {
             var product = await _dbContext.Products
-                .AsNoTracking()
-                .Where(p => p.ProductId == productId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(p => p.ProductId == productId);
 
             if (product == null)
                 return new NotFound();
@@ -47,16 +52,10 @@ namespace ProductCatalog.Repository
             return addedProduct.Entity.ProductId;
         }
 
-        public async Task<OneOf<int, NotFound>> UpdateProductAsync(int productId, UpdateProductDto updateProductDto)
+        public async Task<OneOf<int, NotFound>> UpdateProductAsync(Product product)
         {
-            var productToUpdate = await _dbContext.Products.FindAsync(productId);
-
-            if (productToUpdate is null)
-                return new NotFound();
-
-            productToUpdate.Update(updateProductDto.Name, updateProductDto.Description, updateProductDto.Price);
             await _dbContext.SaveChangesAsync();
-            return productToUpdate.ProductId;
+            return product.ProductId;
         }
 
         public async Task<OneOf<int, NotFound>> DeleteProductAsync(int productId)
@@ -69,6 +68,19 @@ namespace ProductCatalog.Repository
             _dbContext.Remove(productToDelete);
             await _dbContext.SaveChangesAsync();
             return productToDelete.ProductId;
+        }
+
+        public async Task<IEnumerable<Product>> GetTopProductsAsync(int count)
+        {
+            var procedureName = "GetTopNProducts";
+            var parameters = new DynamicParameters();
+            parameters.Add("Count", count, DbType.Int32, ParameterDirection.Input);
+
+            using (IDbConnection connection = new SqlConnection(_configuration.GetConnectionString("ProductDb")))
+            {
+                var products = await connection.QueryAsync<Product>(procedureName, parameters, commandType: CommandType.StoredProcedure);
+                return products;
+            }
         }
     }
 }

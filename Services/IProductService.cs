@@ -12,5 +12,6 @@ namespace ProductCatalog.Services
         Task<OneOf<int, Error>> AddProductAsync(AddProductRequest addProductRequest);
         Task<OneOf<int, NotFound>> UpdateProductAsync(int productId, UpdateProductRequest updateProductRequest);
         Task<OneOf<int, NotFound>> DeleteProductAsync(int productId);
+        Task<OneOf<IEnumerable<ProductDto>, Error>> GetTopProductsAsync(int count);
     }
 }

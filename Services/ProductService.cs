@@ -42,14 +42,28 @@ namespace ProductCatalog.Services
 
         public async Task<OneOf<int, NotFound>> UpdateProductAsync(int productId, UpdateProductRequest updateProductRequest)
         {
-            var updateProductDto = updateProductRequest.Adapt<UpdateProductDto>();
+            var productToUpdate = await _productRepository.GetProductByIdAsync(productId);
 
-            return await _productRepository.UpdateProductAsync(productId, updateProductDto);
+            if(productToUpdate.Value is NotFound)
+                return productToUpdate.AsT1;
+
+            productToUpdate.AsT0.Update(updateProductRequest.Name, updateProductRequest.Description, updateProductRequest.Price);
+
+            return await _productRepository.UpdateProductAsync(productToUpdate.AsT0);
         }
 
         public async Task<OneOf<int, NotFound>> DeleteProductAsync(int productId)
         {
             return await _productRepository.DeleteProductAsync(productId);
+        }
+
+        public async Task<OneOf<IEnumerable<ProductDto>, Error>> GetTopProductsAsync(int count)
+        {
+            if (count <= 0)
+                return new Error();
+
+            var products = await _productRepository.GetTopProductsAsync(count);
+            return products.Adapt<List<ProductDto>>();
         }
     }
 }
