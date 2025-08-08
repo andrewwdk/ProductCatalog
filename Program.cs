@@ -32,7 +32,8 @@ MapsterConfig.RegisterMappings();
 
 var app = builder.Build();
 
-app.UseMiddleware();
+app.UseCustomExceptionHandler();
+app.UseRequestLoggingHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

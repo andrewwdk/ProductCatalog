@@ -30,7 +30,7 @@
 
     public static class ExceptionMiddlewareExtensions
     {
-        public static IApplicationBuilder UseMiddleware(this IApplicationBuilder builder)
+        public static IApplicationBuilder UseCustomExceptionHandler(this IApplicationBuilder builder)
         {
             return builder.UseMiddleware<ExceptionHandlerMiddleware>();
         }

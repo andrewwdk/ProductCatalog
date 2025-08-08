@@ -21,15 +21,12 @@ namespace ProductCatalog.Services
 
         public async Task<IEnumerable<ProductDto>> GetProductsAsync()
         {
-            _logger.LogInformation("GetProductsAsync is requested");
             var products = await _productRepository.GetProductsAsync();
             return products.Adapt<List<ProductDto>>();
         }
 
         public async Task<OneOf<ProductDto, NotFound>> GetProductByIdAsync(int productId)
         {
-            _logger.LogInformation("GetProductByIdAsync is requested");
-
             var product = await _productRepository.GetProductByIdAsync(productId);
 
             if (product.Value is NotFound)
@@ -40,8 +37,6 @@ namespace ProductCatalog.Services
 
         public async Task<OneOf<int, Error>> AddProductAsync(AddProductRequest addProductRequest)
         {
-            _logger.LogInformation("AddProductAsync is requested");
-
             var productToAdd = Product.Create(addProductRequest.Name, addProductRequest.Description, addProductRequest.Price);
 
             return await _productRepository.AddProductAsync(productToAdd);
@@ -49,8 +44,6 @@ namespace ProductCatalog.Services
 
         public async Task<OneOf<int, NotFound>> UpdateProductAsync(int productId, UpdateProductRequest updateProductRequest)
         {
-            _logger.LogInformation("UpdateProductAsync is requested");
-
             var productToUpdate = await _productRepository.GetProductByIdAsync(productId);
 
             if(productToUpdate.Value is NotFound)
@@ -63,15 +56,11 @@ namespace ProductCatalog.Services
 
         public async Task<OneOf<int, NotFound>> DeleteProductAsync(int productId)
         {
-            _logger.LogInformation("DeleteProductAsync is requested");
-
             return await _productRepository.DeleteProductAsync(productId);
         }
 
         public async Task<OneOf<IEnumerable<ProductDto>, Error>> GetTopProductsAsync(int count)
         {
-            _logger.LogInformation("GetTopProductsAsync is requested");
-
             if (count <= 0)
                 return new Error();
 
