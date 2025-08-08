@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProductCatalog.DbContexts;
 using ProductCatalog.Mapper;
+using ProductCatalog.Middlewares;
 using ProductCatalog.Repository;
 using ProductCatalog.Services;
 
@@ -25,6 +26,8 @@ builder.Services.AddTransient<IProductRepository, ProductRepository>();
 MapsterConfig.RegisterMappings();
 
 var app = builder.Build();
+
+app.UseMiddleware();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
